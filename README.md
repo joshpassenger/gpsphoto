@@ -1,2 +1,9 @@
-# gpsphoto
-Simple tool for positioning photos along GPS tracks using linear interpolation.
+GPS Photo Tool
+==============
+
+## How to run
+
+## Design goals
+
+## Supported formats
+
