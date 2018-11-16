@@ -7,3 +7,6 @@ GPS Photo Tool
 
 ## Supported formats
 
+## New features
+
+Splitting of surveys into multiple transects based on time clustering
