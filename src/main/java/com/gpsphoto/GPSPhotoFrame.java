@@ -221,7 +221,7 @@ public class GPSPhotoFrame extends JFrame
         createLabel("Timezone offset for survey location from UTC in decimal hours (eg: +10.0)");
 
         c.weightx = 6.0;
-        c.gridwidth = GridBagConstraints.RELATIVE;
+        c.gridwidth = GridBagConstraints.REMAINDER;
         timeZoneTextField.setMinimumSize(new Dimension(100, 25));
         configGridBag.setConstraints(timeZoneTextField, c);
         configTopPanel.add(timeZoneTextField);
