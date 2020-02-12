@@ -47,6 +47,7 @@ public class GPSPhotoProcessor
     private String timePhoto;
 
     private String photoTime;
+    private String timeZoneOffset;
     private final long tolerance;
 
     private long timeOffset = 0L;
@@ -75,6 +76,7 @@ public class GPSPhotoProcessor
                 long tolerance,
                 String timePhoto,
                 String photoTime,
+                String timeZoneOffset,
                 boolean recursive,
                 String outputDir,
                 String kmlFile, // may be null
@@ -88,6 +90,7 @@ public class GPSPhotoProcessor
         this.tolerance = tolerance;
         this.timePhoto = timePhoto;
         this.photoTime = photoTime;
+        this.timeZoneOffset = timeZoneOffset;
         this.recursive = recursive;
         this.outputDir = outputDir;
         this.kmlFile = kmlFile;
@@ -160,6 +163,7 @@ public class GPSPhotoProcessor
             boolean thumbnails = commands.hasOption("thumbnails");
             String timePhoto = commands.getOptionValue("timephoto");
             String photoTime = commands.getOptionValue("phototime");
+            String timeZoneOffset = commands.getOptionValue("timezoneoffset");
             String outputDir = commands.getOptionValue("outputdir");
             long tolerance = 2000L;
 
@@ -227,6 +231,7 @@ public class GPSPhotoProcessor
                     tolerance,
                     timePhoto,
                     photoTime,
+                    timeZoneOffset,
                     recursive,
                     outputDir,
                     kmlFile,
@@ -251,6 +256,11 @@ public class GPSPhotoProcessor
 
     public void process() throws GPSPhotoException, IOException
     {
+        if (logFrame != null)
+        {
+            logFrame.clearLog();
+        }
+
         /**
          * Parse the GPX file
          */
@@ -280,6 +290,11 @@ public class GPSPhotoProcessor
          * Produce an optional shape file
          */
         createShapeFile();
+
+        if (logFrame != null)
+        {
+            logFrame.saveLog(new File(outputDir, "processing_log.txt"));
+        }
     }
 
     private SimpleFeatureType createFeatureType()
@@ -504,17 +519,15 @@ public class GPSPhotoProcessor
 
         Collections.sort(positions);
 
-
-
         if (logFrame != null)
         {
             logFrame.addLog("INFO", String.format("Loaded [%d] GPS positions", positions.size()));
             if (!positions.isEmpty())
             {
-                Date minDate = positions.get(0).getLocalTime();
-                Date maxDate = positions.get(positions.size() - 1).getLocalTime();
+                Date minDate = positions.get(0).getUTCTime();
+                Date maxDate = positions.get(positions.size() - 1).getUTCTime();
                 logFrame.addLog("INFO",
-                    String.format("Minimum GPS local time: [%s] Maximum GPS local time: [%s]",
+                    String.format("Minimum GPS UTC time: [%s] Maximum GPS UTC time: [%s]",
                                   dateFormat.format(minDate), dateFormat.format(maxDate)));
             }
         }
@@ -527,25 +540,36 @@ public class GPSPhotoProcessor
 
         Date gpsDateTime;
 
+        long timeZoneOffsetMillis;
+
+        try
+        {
+            double timeZoneOffsetDouble = Double.parseDouble(timeZoneOffset);
+            timeZoneOffsetMillis = (long) (timeZoneOffsetDouble * 60.0 * 60.0 * 1000.0);
+        }
+        catch (NumberFormatException n)
+        {
+            throw new GPSPhotoException("Failed to parse input time zone offset hours must be a decimal: " + timeZoneOffset, n);
+        }
+
         try
         {
             gpsDateTime = dateFormat.parse(photoTime);
-            Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
-            calendar.setTime(gpsDateTime);
-            gpsDateTime = calendar.getTime();
         }
         catch (Throwable t)
         {
             throw new GPSPhotoException("Failed to parse input data must be in format: yyyy-MM-dd HH:mm:ss found: " + photoTime, t);
         }
 
-        timeOffset = gpsDateTime.getTime() - photo.getCaptureTime().getTime();
+        timeOffset = gpsDateTime.getTime() - photo.getCaptureTime().getTime() - timeZoneOffsetMillis;
 
-        LOGGER.info(String.format("Found time difference: [%d] milliseconds", timeOffset));
+        LOGGER.info(String.format("Found GPS photo time offset: [%d] time zone offset: [%d] total time difference: [%d]",
+                gpsDateTime.getTime() - photo.getCaptureTime().getTime(), timeZoneOffsetMillis, timeOffset));
 
         if (logFrame != null)
         {
-            logFrame.addLog("INFO", String.format("Found time difference: [%d] milliseconds", timeOffset));
+            logFrame.addLog("INFO", String.format("Found GPS photo time offset: [%d] time zone offset: [%d] total time difference: [%d]",
+                    gpsDateTime.getTime() - photo.getCaptureTime().getTime(), timeZoneOffsetMillis, timeOffset));
         }
     }
 
@@ -558,9 +582,15 @@ public class GPSPhotoProcessor
 
         LOGGER.info(String.format("Found: [%d] matching input files to process", photoFiles.size()));
 
+        if (logFrame != null)
+        {
+            logFrame.addLog("INFO", String.format("Found: [%d] matching input files to process", photoFiles.size()));
+        }
+
         for (File photoFile: photoFiles)
         {
             GPSPhoto photo = new GPSPhoto(photoFile);
+
             if (thumbnails)
             {
                 photo.setThumbnailFile(new File(outputDir, photoFile.getName()));
@@ -644,6 +674,7 @@ public class GPSPhotoProcessor
                         photo.getInputFile().toString(),
                         dateFormat.format(photo.getCaptureTime()),
                         dateFormat.format(photo.getOffsetTime()));
+                    LOGGER.warn(message);
                     logFrame.addLog("WARNING", message);
                 }
             }

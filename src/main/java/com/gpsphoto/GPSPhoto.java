@@ -144,8 +144,8 @@ public class GPSPhoto
             GPSPosition thisPosition = positions.get(i);
             GPSPosition nextPosition = positions.get(i + 1);
 
-            long thisTime = thisPosition.getLocalTime().getTime();
-            long nextTime = nextPosition.getLocalTime().getTime();
+            long thisTime = thisPosition.getUTCTime().getTime();
+            long nextTime = nextPosition.getUTCTime().getTime();
 
             if (thisTime == nextTime)
             {
@@ -162,8 +162,8 @@ public class GPSPhoto
             long timeDelta1 = offsetTimeMillis - thisTime;
             long timeDelta2 = nextTime - offsetTimeMillis;
 
-            boolean timeMatch1 = timeDelta1 >= 0L && timeDelta1 <= tolerance;
-            boolean timeMatch2 = timeDelta2 >= 0L && timeDelta2 <= tolerance;
+            boolean timeMatch1 = (timeDelta1 >= 0L) && (timeDelta1 <= tolerance);
+            boolean timeMatch2 = (timeDelta2 >= 0L) && (timeDelta2 <= tolerance);
 
             /**
              * Hunt linearly for a matching time slot

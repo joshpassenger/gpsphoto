@@ -14,5 +14,10 @@ gradle-app.setting
 
 *.iml
 
+.idea/
+out/
+output/
+logs/
+
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties

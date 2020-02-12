@@ -1,9 +1,11 @@
 group 'com.gpsphoto'
-version '1.0.7'
+version '1.0.11'
 
 
 apply plugin: 'java'
 apply plugin: 'application'
+
+applicationDefaultJvmArgs = ["-Xmx1024M"]
 
 mainClassName = "com.gpsphoto.GPSPhotoApp"
 sourceCompatibility = 1.8

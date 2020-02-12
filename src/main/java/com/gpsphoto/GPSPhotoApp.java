@@ -5,6 +5,7 @@ import com.jgoodies.looks.plastic.theme.Silver;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
+import java.util.Locale;
 
 /**
  * Runs the photo matching user interface
@@ -15,6 +16,8 @@ public class GPSPhotoApp
 
     public static void main(String[] args)
     {
+        Locale.setDefault(new Locale("en", "US"));
+
         LOGGER.info("Setting look and feel");
         setLookAndFeel();
 

@@ -18,6 +18,10 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -48,6 +52,7 @@ public class GPSPhotoFrame extends JFrame
     private JTextField photosDirTextField = new JTextField();
     private JTextField timePhotoTextField = new JTextField();
     private JTextField timeTextField = new JTextField();
+    private JTextField timeZoneTextField = new JTextField();
     private JTextField gpxFileTextField = new JTextField();
     private JTextField fileNameTextField = new JTextField();
     private JTextField outputDirTextField = new JTextField();
@@ -68,7 +73,7 @@ public class GPSPhotoFrame extends JFrame
 
     private JProgressBar progressBar = new JProgressBar();
 
-    public static String VERSION = "1.0.7 (validation trial)";
+    public static String VERSION = "1.0.11 (locale fixes)";
 
     private FastDateFormat logDateFormat = FastDateFormat.getInstance("dd-MM-yyyy HH:mm:ss");
 
@@ -101,8 +106,9 @@ public class GPSPhotoFrame extends JFrame
 
     private void init()
     {
-        setSize(new Dimension(800, 650));
-        setMinimumSize(new Dimension(800, 650));
+        LOGGER.info("Starting version: " + VERSION);
+        setSize(new Dimension(800, 680));
+        setMinimumSize(new Dimension(800, 680));
         setTitle("GPS Photo Manager: " + VERSION);
         setResizable(true);
 
@@ -200,7 +206,7 @@ public class GPSPhotoFrame extends JFrame
 
         c.weightx = 6.0;
         c.gridwidth = GridBagConstraints.RELATIVE;
-        timeTextField.setMinimumSize(new Dimension(100, 30));
+        timeTextField.setMinimumSize(new Dimension(100, 25));
         configGridBag.setConstraints(timeTextField, c);
         configTopPanel.add(timeTextField);
 
@@ -209,6 +215,16 @@ public class GPSPhotoFrame extends JFrame
         readCaptureTimeButton.setEnabled(false);
         configGridBag.setConstraints(readCaptureTimeButton, c);
         configTopPanel.add(readCaptureTimeButton);
+
+        createStrut(10);
+
+        createLabel("Timezone offset for survey location from UTC in decimal hours (eg: +10.0)");
+
+        c.weightx = 6.0;
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        timeZoneTextField.setMinimumSize(new Dimension(100, 25));
+        configGridBag.setConstraints(timeZoneTextField, c);
+        configTopPanel.add(timeZoneTextField);
 
         createStrut(10);
 
@@ -323,6 +339,26 @@ public class GPSPhotoFrame extends JFrame
         getRootPane().add(tabbedPane, BorderLayout.CENTER);
 
         registerListeners();
+
+        computeTimeZoneOffset();
+    }
+
+    private void computeTimeZoneOffset()
+    {
+        LocalDateTime now = LocalDateTime.now();
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZoneOffset offset = zoneId.getRules().getOffset(now);
+
+        double offsetMillis = (offset.getTotalSeconds() / 3600.0);
+
+        if (offsetMillis > 0.0)
+        {
+            timeZoneTextField.setText("+" + offsetMillis);
+        }
+        else
+        {
+            timeZoneTextField.setText("" + offsetMillis);
+        }
     }
 
     private void exit()
@@ -691,6 +727,7 @@ public class GPSPhotoFrame extends JFrame
                                 Long.parseLong(timeToleranceTextField.getText()),
                                 timePhotoTextField.getText(),
                                 timeTextField.getText(),
+                                timeZoneTextField.getText(),
                                 recursivePhotosCheckBox.isSelected(),
                                 outputDirTextField.getText(),
                                 kmlFile,
@@ -850,5 +887,23 @@ public class GPSPhotoFrame extends JFrame
                 progressBar.setValue((int) (100 * percentComplete));
             }
         });
+    }
+
+    public void clearLog()
+    {
+        logTextArea.setText("");
+        addLog("INFO", String.format("GPS Photo Manager (%s) was started successfully", VERSION));
+    }
+
+    public void saveLog(File file)
+    {
+        try
+        {
+            FileUtils.write(file, logTextArea.getText());
+        }
+        catch (IOException e)
+        {
+            LOGGER.error("Failed to write log", e);
+        }
     }
 }

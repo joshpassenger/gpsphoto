@@ -44,7 +44,6 @@ public class GPSPhotoThread implements Runnable
 
                 if (photo != null)
                 {
-
                     if (photo.computePosition(positions, tolerance))
                     {
                         photo.setMatched(true);
@@ -59,6 +58,7 @@ public class GPSPhotoThread implements Runnable
             }
             catch (InterruptedException e)
             {
+                LOGGER.error("Got interrupted processing image", e);
             }
             catch (Throwable t)
             {
