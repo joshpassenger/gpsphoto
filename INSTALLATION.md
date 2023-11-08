@@ -2,13 +2,13 @@ Hi Chris,
 
 Here is the link to the latest GPS photo tool:
 
-https://drive.google.com/file/d/0B1tJmouP3MfFdmdkSnNob1M4WTg/view?usp=sharing
+https://phototransect-deployment-ap-southeast-2.s3.ap-southeast-2.amazonaws.com/gps-photo/releases/gpsphoto_v1-1.0.10.zip
 
 To install download and extract the zip file into the c:\GPSPhoto directory on your local computer (I think I named it this)
 
 This will create a versioned directory which contains the current release (gpsphoto-1.0.7) for the rest of this document I will call this <installationdir> ie:
 
-<installationdir> for this release is c:\GPSPhoto\gpsphoto-1.0.7\
+<installationdir> for this release is c:\GPSPhoto\gpsphoto-1.0.10\
 
 Since you do not have administrator privledges on all machines and I require an environment variable to be set (JAVA_HOME) you may can either:
 
